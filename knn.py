@@ -50,3 +50,5 @@ G = nx.Graph()
 G.add_edges_from(knn)
 M = nx.adjacency_matrix(G)
 print(M.shape)
+
+nx.write_gpickle(G, 'graph.gpickle')
