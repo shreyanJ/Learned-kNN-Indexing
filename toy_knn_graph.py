@@ -14,6 +14,7 @@ N = 50
 M = 30
 d = 2
 k = 10
+S = 20 # need S-nn graph for soft label empirical distribution over S nearest neighbors, S >> k
 
 def dist(x, y):
 	return np.linalg.norm(x-y)

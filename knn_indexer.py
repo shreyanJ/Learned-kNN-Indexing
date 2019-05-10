@@ -7,18 +7,17 @@ G = nx.read_gpickle('graph.gpickle')
 # we use a hierarchical partitioning approach to generate m balanced partitions of the graph
 # specifically, we choose m to be a power of 2 and repeatedly use Kernighan-Lin to bisect the 
 # graph into 2 approximately equal parts
-num_levels = 3 # this gives m = 2^3 = 8 parts
-
 def graph_partition(graph, level):
 	if level == num_levels:
 		return [graph]
 	else:
 		part1, part2 = community.kernighan_lin_bisection(graph, weight='weight')
-		return graph_partition(graph.subgraph(part1), level + 1) + graph_partition(graph.subgraph(part2), level + 1)
+		return graph_partition(graph.subgraph(part1), level - 1) + graph_partition(graph.subgraph(part2), level - 1)
 
-partition = graph_partition(G, 0)
-for part in partition:
-	print(part.nodes())
+# First, partition the knn graph formed by the training set
+num_levels = 4 # this gives M = 16
+M = 2 ** num_levels
+partition = graph_partition(G, num_levels)
 
 # check the partition was correct
 union = []
