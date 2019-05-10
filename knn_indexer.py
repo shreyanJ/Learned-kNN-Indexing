@@ -1,26 +1,48 @@
 import networkx as nx
-from networkx.algorithms import community
+import pickle
+import numpy as np
 
-# import the knn graph
-G = nx.read_gpickle('graph.gpickle')
+def get_training_data():
+	# import the knn graph and the partitions
+	G = nx.read_gpickle('pickles/knn_graph.gpickle')
+	partitions = nx.read_gpickle('pickles/graph_partitions.pickle')
+	N = len(G.nodes())
+	M = len(partitions)
 
-# we use a hierarchical partitioning approach to generate m balanced partitions of the graph
-# specifically, we choose m to be a power of 2 and repeatedly use Kernighan-Lin to bisect the 
-# graph into 2 approximately equal parts
-def graph_partition(graph, level):
-	if level == num_levels:
-		return [graph]
-	else:
-		part1, part2 = community.kernighan_lin_bisection(graph, weight='weight')
-		return graph_partition(graph.subgraph(part1), level - 1) + graph_partition(graph.subgraph(part2), level - 1)
+	# load the training data
+	points = pickle.load(open('pickles/points.pickle', 'rb'))
+	assert len(points) == N
 
-# First, partition the knn graph formed by the training set
-num_levels = 4 # this gives M = 16
-M = 2 ** num_levels
-partition = graph_partition(G, num_levels)
+	# flatten each training point's feature matrix into a single feature vector
+	# note that not every collision event may have the same number of particles
+	num_particles = 0
+	for point in points:
+		num_particles = max(num_particles, point.shape[0])
+	num_readings = points[0].shape[1] # every particle should have the same number (3) of readigns
 
-# check the partition was correct
-union = []
-for part in partition:
-	union += list(part.nodes())
-assert set(union) == set(G.nodes())
+	X = []
+	for point in points:
+		feature = np.copy(point)
+		feature.resize((num_readings * num_particles,))
+		X.append(feature)
+	X = np.array(X)
+
+	# create labels for each node
+	labels = {}
+	for i, part in enumerate(partitions):
+		for node in part:
+			labels[node] = i
+
+	# turn the labels into soft labels
+	# for this, the label becomes the empirical distribution of the part that each node's S nearest neighbors belong to
+	nns = nx.read_gpickle('pickles/nearest_neighbors.pickle')
+	Y = []
+	for i in range(N):
+		distribution = np.zeros(M)
+		for n in nns[i]:
+			distribution[labels[n]] += 1
+		distribution = np.divide(distribution, np.sum(distribution))
+		Y.append(distribution)
+	Y = np.array(Y)
+
+	return X, Y
