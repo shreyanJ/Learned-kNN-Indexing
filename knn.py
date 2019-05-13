@@ -10,11 +10,10 @@ from tqdm import tqdm
 from energyflow.emd import emd, emds
 from energyflow.datasets import qg_jets
 
-N = 1000
-M = 8
+N = 50
+M = 30
 d = 2
 k = 10
-S = 20 # need S-nn graph for soft label empirical distribution over S nearest neighbors, S >> k
 
 def dist(x, y):
 	return np.linalg.norm(x-y)
@@ -52,4 +51,4 @@ G.add_edges_from(knn)
 M = nx.adjacency_matrix(G)
 print(M.shape)
 
-nx.write_gpickle(G, 'toy_graph.gpickle')
+nx.write_gpickle(G, 'graph.gpickle')
