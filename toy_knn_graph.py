@@ -37,20 +37,23 @@ xs = data.reshape(-1, 2)
 pickle.dump(data, open("pickles/bigger_toy_points.pickle", "wb"))
 knn = []
 all_distances = np.zeros((c*N, c*N))
+
+def f(mu_j, mu_i):
+    C = np.zeros((M, M))
+    for x in range(M):
+        for y in range(M):
+            C[x, y] = dist(mu_i[x], mu_j[y])
+    d = ot.emd2([], [], C)
+    return (j,d)
+
 from multiprocessing import Pool
+from functools import partial
+
 pool = Pool(processes=16)
 for i in tqdm(range(c*N)):
     distances = []
     mu_i = data[i]
-    
-    def f(mu_j):
-    	C = np.zeros((M, M))
-        for x in range(M):
-            for y in range(M):
-                C[x, y] = dist(mu_i[x], mu_j[y])
-        d = ot.emd2([], [], C)
-        return (j,d)
-   	
+    copier = functools.partial(f, mu_i = mu_i)
     distances = pool.map(f, data)
     for j in range(len(distances)):
 	    all_distances[i, distances[j][0]] = distances[j][1]
