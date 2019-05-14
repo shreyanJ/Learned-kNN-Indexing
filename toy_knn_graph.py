@@ -10,8 +10,9 @@ from tqdm import tqdm
 from energyflow.emd import emd, emds
 from energyflow.datasets import qg_jets
 
-N = 1000
+N = 500
 M = 8
+c = 4
 d = 2
 k = 10
 S = 20 # need S-nn graph for soft label empirical distribution over S nearest neighbors, S >> k
@@ -20,18 +21,14 @@ def dist(x, y):
 	return np.linalg.norm(x-y)
 
 cov1 = np.array([[1, 0], [0, 1]])
-cov2 = np.array([[0.866, 0.5], [0.5, 0.866]])
-means = np.random.uniform(0.0, 1.0, size=(2*N, d))
+centres = np.array([[2, 2], [-2, 2], [2, -2], [-2, -2]])
+means = np.random.uniform(-0.5, 0.5, size=(c*N, d))
 
 data = []
-for i in range(N):
-	x = np.random.multivariate_normal(means[i, :], cov1, size=M)
-	data.append(x)
-
-for i in range(N, 2*N):
-	x = np.random.multivariate_normal(means[i, :], cov2, size=M)
-	data.append(x)
-
+for j in range(c):
+	for i in range(N):
+		x = np.random.multivariate_normal(centres[j, :] + means[i, :], cov1, size=M)
+		data.append(x)
 
 knn = []
 for i in tqdm(range(2*N)):
