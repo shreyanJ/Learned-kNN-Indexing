@@ -29,11 +29,13 @@ for j in range(c):
 	for i in range(N):
 		x = np.random.multivariate_normal(centres[j, :] + means[i, :], cov1, size=M)
 		data.append(x)
+pickle.dump(data, open("pickles/toy_points.pickle"))
 
 knn = []
-for i in tqdm(range(2*N)):
+all_distances = np.zeros()
+for i in tqdm(range(c*N)):
 	distances = []
-	for j in range(2*N):
+	for j in range(c*N):
 		mu_i, mu_j = data[i], data[j]
 		C = np.zeros((M, M))
 		for x in range(M):
