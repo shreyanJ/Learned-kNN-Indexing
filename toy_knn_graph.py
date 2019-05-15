@@ -9,8 +9,8 @@ from tqdm import tqdm
 from energyflow.emd import emd, emds
 from energyflow.datasets import qg_jets
 
-N = 250
-M = 50
+Ns = [100, 200, 300, 400]
+M = 8
 c = 4
 d = 2
 k = 10
@@ -23,10 +23,11 @@ def dist(x, y):
 
 cov1 = np.array([[1, 0], [0, 1]])
 centres = np.array([[a, a], [-a, a], [a, -a], [-a, -a]])
-means = np.random.uniform(-0.5, 0.5, size=(c*N, d))
+means = np.random.uniform(-0.5, 0.5, size=(sum(Ns), d))
 
 data = []
 for j in range(c):
+	N = Ns[j]
 	for i in range(N):
 		x = np.random.multivariate_normal(centres[j, :] + means[i, :], cov1, size=M)
 		data.append(x)
@@ -34,9 +35,9 @@ for j in range(c):
 data = np.array(data)
 print(data.shape)
 xs = data.reshape(-1, 2)
-pickle.dump(data, open("pickles/bigger_toy_points.pickle", "wb"))
+pickle.dump(data, open("pickles/imbalanced_toy_points.pickle", "wb"))
 knn = []
-all_distances = np.zeros((c*N, c*N))
+all_distances = np.zeros((sum(Ns), sum(Ns)))
 
 def f(mu_j, mu_i):
     C = np.zeros((M, M))
@@ -50,7 +51,7 @@ from multiprocessing import Pool
 from functools import partial
 
 pool = Pool(processes=1)
-for i in tqdm(range(c*N)):
+for i in tqdm(range(sum(Ns))):
     distances = []
     mu_i = data[i]
     copier = partial(f, mu_i = mu_i)
@@ -62,11 +63,11 @@ for i in tqdm(range(c*N)):
     for v in distances[:k]:
         knn.append((i, v[0], {'weight': v[1]}))
 
-pickle.dump(all_distances, open("pickles/bigger_toy_distances.pickle", "wb"))
+pickle.dump(all_distances, open("pickles/imbalanced_toy_distances.pickle", "wb"))
 
 G = nx.Graph()
 G.add_edges_from(knn)
 M = nx.adjacency_matrix(G)
 print(M.shape)
 
-nx.write_gpickle(G, 'bigger_toy_graph.gpickle')
+nx.write_gpickle(G, 'imbalanced_toy_graph.gpickle')
