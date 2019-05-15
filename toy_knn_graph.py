@@ -9,8 +9,8 @@ from tqdm import tqdm
 from energyflow.emd import emd, emds
 from energyflow.datasets import qg_jets
 
-N = 1000
-M = 200
+N = 250
+M = 50
 c = 4
 d = 2
 k = 10
@@ -30,7 +30,7 @@ for j in range(c):
 	for i in range(N):
 		x = np.random.multivariate_normal(centres[j, :] + means[i, :], cov1, size=M)
 		data.append(x)
-        
+
 data = np.array(data)
 print(data.shape)
 xs = data.reshape(-1, 2)
@@ -49,12 +49,12 @@ def f(mu_j, mu_i):
 from multiprocessing import Pool
 from functools import partial
 
-pool = Pool(processes=16)
+pool = Pool(processes=1)
 for i in tqdm(range(c*N)):
     distances = []
     mu_i = data[i]
-    copier = functools.partial(f, mu_i = mu_i)
-    distances = pool.map(f, data)
+    copier = partial(f, mu_i = mu_i)
+    distances = pool.map(copier, data)
     for j in range(len(distances)):
 	    all_distances[i, distances[j][0]] = distances[j][1]
 
@@ -62,7 +62,7 @@ for i in tqdm(range(c*N)):
     for v in distances[:k]:
         knn.append((i, v[0], {'weight': v[1]}))
 
-pickle.dump(all_distances, open("pickles/bigger_toy_distances.pickle", "wb"))        
+pickle.dump(all_distances, open("pickles/bigger_toy_distances.pickle", "wb"))
 
 G = nx.Graph()
 G.add_edges_from(knn)
