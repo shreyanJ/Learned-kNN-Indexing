@@ -9,7 +9,7 @@ from tqdm import tqdm
 from energyflow.emd import emd, emds
 from energyflow.datasets import qg_jets
 
-Ns = [100, 200, 300, 400]
+Ns = [250, 250, 250, 250]
 M = 8
 c = 4
 d = 2
@@ -35,7 +35,7 @@ for j in range(c):
 data = np.array(data)
 print(data.shape)
 xs = data.reshape(-1, 2)
-pickle.dump(data, open("data/small_toy/points.pickle", "wb"))
+pickle.dump(data, open("data/balanced_toy/points.pickle", "wb"))
 knn = []
 all_distances = np.zeros((sum(Ns), sum(Ns)))
 
@@ -64,11 +64,11 @@ for i in tqdm(range(sum(Ns))):
     for v in distances[:k]:
         knn.append((i, v[0], {'weight': v[1]}))
 
-pickle.dump(all_distances, open("data/small_toy/distances.pickle", "wb"))
+pickle.dump(all_distances, open("data/balanced_toy/distances.pickle", "wb"))
 
 G = nx.Graph()
 G.add_edges_from(knn)
 M = nx.adjacency_matrix(G)
 print(M.shape)
 
-nx.write_gpickle(G, 'data/small_toy/knn_graph.gpickle')
+nx.write_gpickle(G, 'data/balanced_toy/knn_graph.gpickle')
