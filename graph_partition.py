@@ -3,7 +3,7 @@ from networkx.algorithms import community
 import pickle
 
 # import the knn graph
-G = nx.read_gpickle('pickles/knn_graph.gpickle')
+G = nx.read_gpickle('pickles/bigger_toy_knn_graph.gpickle')
 
 # we use a hierarchical partitioning approach to generate m balanced partitions of the graph
 # specifically, we choose m to be a power of 2 and repeatedly use Kernighan-Lin to bisect the 
@@ -27,4 +27,4 @@ for part in partition:
 	union += list(part)
 assert set(union) == set(G.nodes())
 
-pickle.dump(partition, open("pickles/graph_partitions.pickle", "wb"))
+pickle.dump(partition, open("pickles/bigger_toy_graph_partitions.pickle", "wb"))

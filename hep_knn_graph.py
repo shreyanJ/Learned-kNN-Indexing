@@ -19,7 +19,7 @@ for i, point in enumerate(points):
 	knn_graph.add_node(i, reading=point)
 
 # Load the pairwise distances
-distances = pickle.load(open('pickles/CERN_emds.p', 'rb'))
+distances = pickle.load(open('pickles/distances.pickle', 'rb'))
 assert distances.shape == (N, N)
 
 # Compute the k and S nearest neighbors by sorting the distances
