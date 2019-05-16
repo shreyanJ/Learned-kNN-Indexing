@@ -35,17 +35,28 @@ for j in range(c):
 data = np.array(data)
 print(data.shape)
 xs = data.reshape(-1, 2)
-pickle.dump(data, open("data/balanced_toy/points.pickle", "wb"))
+pickle.dump(data, open("data/balanced_toy_kernel/points.pickle", "wb"))
 knn = []
 all_distances = np.zeros((sum(Ns), sum(Ns)))
 
-def f(mu_j, mu_i):
+def w2(mu_j, mu_i):
     C = np.zeros((M, M))
     for x in range(M):
         for y in range(M):
             C[x, y] = dist(mu_i[x], mu_j[y])
     d = ot.emd2([], [], C)
     return d
+
+def km(mu_j, mu_i):
+	s2 = 10
+	def k(x, y):
+		return np.exp(np.linalg.norm(x-y)/s2)
+
+	d = 0.
+	for i in range(M):
+		for j in range(M):
+			d += k(mu_i[i], mu_j[j])
+	return d / (M*M)
 
 from multiprocessing import Pool
 from functools import partial
@@ -54,7 +65,7 @@ pool = Pool(processes=1)
 for i in tqdm(range(sum(Ns))):
     distances = []
     mu_i = data[i]
-    copier = partial(f, mu_i = mu_i)
+    copier = partial(km, mu_i = mu_i)
     distances = pool.map(copier, data)
     for j in range(len(distances)):
 	    all_distances[i, j] = distances[j]
@@ -64,11 +75,11 @@ for i in tqdm(range(sum(Ns))):
     for v in distances[:k]:
         knn.append((i, v[0], {'weight': v[1]}))
 
-pickle.dump(all_distances, open("data/balanced_toy/distances.pickle", "wb"))
+pickle.dump(all_distances, open("data/balanced_toy_kernel/distances.pickle", "wb"))
 
 G = nx.Graph()
 G.add_edges_from(knn)
 M = nx.adjacency_matrix(G)
 print(M.shape)
 
-nx.write_gpickle(G, 'data/balanced_toy/knn_graph.gpickle')
+nx.write_gpickle(G, 'data/balanced_toy_kernel/knn_graph.gpickle')
